@@ -40,7 +40,7 @@ class interface():
 		self.entrada_mascara.configure(state="normal" if self.conectado and not self.dhcp else "disable")
 		self.entrada_dns.configure(state="normal" if self.conectado and not self.dhcp else "disable")
 		
-#FUNCIÓN PARA ACTUALIZAR TODOS
+#FUNCIÓN PARA VOLVER A CARGAR TODO
 def actualizar():
 	lista_interfaces = []
 	interfaces_rede()
