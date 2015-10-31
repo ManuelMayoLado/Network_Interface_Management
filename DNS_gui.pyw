@@ -39,7 +39,8 @@ class interface():
 		self.entrada_mascara = Entry(self.r, text="", state="normal" if self.conectado and not self.dhcp else "disable")
 		self.entrada_gateway = Entry(self.r, text="", state="normal" if self.conectado and not self.dhcp else "disable")
 		self.entrada_dns = Entry(self.r, text="", state="normal" if self.conectado and not self.dhcp else "disable")
-		self.boton = Button(self.r, text="CAMBIAR", state="normal" if self.conectado and not self.dhcp else "disable", relief="groove")
+		self.boton = Button(self.r, text="CAMBIAR", state="normal" if self.conectado and not self.dhcp else "disable", relief="groove",
+							bg="azure2" if self.conectado and not self.dhcp else "lightgray")
 		
 		#ESCRIBIR OS PARAMETROS NAS ENTRADAS DE TEXTO
 		escribir_en(self.entrada_ip,self.ip,True)
@@ -58,6 +59,8 @@ class interface():
 		self.entrada_mascara.configure(state="normal" if self.conectado and not self.dhcp else "disable")
 		self.entrada_gateway.configure(state="normal" if self.conectado and not self.dhcp else "disable")
 		self.entrada_dns.configure(state="normal" if self.conectado and not self.dhcp else "disable")
+		self.boton.configure(state="normal" if self.conectado and not self.dhcp else "disable",
+							bg="azure2" if self.conectado and not self.dhcp else "lightgray")
 		
 #FUNCIÓN PARA VOLVER A CARGAR TODO
 def actualizar():
@@ -102,7 +105,7 @@ interfaces_rede()
 def app_init(r):
 
 	#TITULO
-	r.title("DNS Edition")
+	r.title("Configuración de Interfaces")
 	
 	#CONFIGURACION DA VENTANA
 	r.resizable(width=False, height=True)
@@ -112,12 +115,12 @@ def app_init(r):
 	
 	Boton_actualizar = Button(r, text="ACTUALIZAR", relief="groove", command=actualizar)
 	Boton_actualizar.grid(row=0, column=0, pady=15, padx=10, sticky="w")
-	Label(r, text="INTERFACES DE REDE", bg="lightblue").grid(row=1, column=0, pady=15, padx=10, sticky="we")
-	Label(r, text="DHCP", bg="lightblue", width=15).grid(row=1, column=1, pady=15, padx=10, sticky="we")
-	Label(r, text="IP", bg="lightblue", width=15).grid(row=1, column=2, pady=15, padx=10, sticky="we")
-	Label(r, text="NETMASK", bg="lightblue", width=15).grid(row=1, column=3, pady=15, padx=10, sticky="we")
-	Label(r, text="GATEWAY", bg="lightblue").grid(row=1, column=4, pady=15, padx=10, sticky="we")
-	Label(r, text="DNS", bg="lightblue").grid(row=1, column=5, pady=15, padx=10, sticky="we")
+	Label(r, text="INTERFACES DE REDE", bg="lightblue", relief="groove").grid(row=1, column=0, pady=15, padx=10, sticky="we")
+	Label(r, text="DHCP", bg="lightblue", relief="groove").grid(row=1, column=1, pady=15, padx=10, sticky="we")
+	Label(r, text="IP", bg="lightblue", relief="groove").grid(row=1, column=2, pady=15, padx=10, sticky="we")
+	Label(r, text="NETMASK", bg="lightblue", relief="groove").grid(row=1, column=3, pady=15, padx=10, sticky="we")
+	Label(r, text="GATEWAY", bg="lightblue", relief="groove").grid(row=1, column=4, pady=15, padx=10, sticky="we")
+	Label(r, text="DNS", bg="lightblue", relief="groove").grid(row=1, column=5, pady=15, padx=10, sticky="we")
 	
 	#DEBUXAR AS INTERFACES NA VENTANA
 	for interface in lista_interfaces:	
@@ -131,8 +134,8 @@ def app_init(r):
 		
 	#CAMPO DE TEXTO CON BARRA DE SCROLL
 	
-	campo_texto=Text(r, height=10, width=110)
-	campo_texto.grid(row=len(lista_interfaces)+2, column=0, columnspan=7, pady=30, padx=25, sticky="w")
+	campo_texto=Text(r, height=10, width=100)
+	campo_texto.grid(row=len(lista_interfaces)+2, column=0, columnspan=6, pady=30, padx=25, sticky="w")
 	campo_texto.config(state="disable")
 	
 	escribir_en(campo_texto,"Inicio da aplicación: "+str(d.datetime.today()))
@@ -141,7 +144,7 @@ def app_init(r):
 
 	campo_texto.config(yscrollcommand=barra_scroll.set)
 	
-	barra_scroll.grid(row=len(lista_interfaces)+2, column=6, pady=30, sticky="nsw")
+	barra_scroll.grid(row=len(lista_interfaces)+2, column=5, padx=10, pady=30, sticky="nse")
 	barra_scroll.config(command=campo_texto.yview)
 
 app_init(root)
