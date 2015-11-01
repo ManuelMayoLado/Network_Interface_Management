@@ -3,40 +3,75 @@
 from Tkinter import *
 import ttk
 import os
-import datetime
-
-lista_interfaces = []
-
-root = Tk()
+import time
 
 """
 netsh interface ipv4 show config name="Ethernet" & netsh interface ipv4 show config name="Wi-Fi"
 """
 
+Sistema_operativo = "Linux" if os.name == "posix" else "Windows"
+
+#CLASE APP
+
+class App():
+	def __init__(self):
+		self.root = Tk()
+		self.textbox = Text(self.root, height=10, width=85, state="disable")
+		self.interfaces = interfaces_rede(self)
+		app_init(self)
+		self.root.mainloop()
+		
+	#def time_update(self):
+	#	escribir_en(self.textbox,str(time.strftime("%H:%M:%S")))
+	#	self.root.after(1000, self.time_update)
+		
+
 #CLASE INTERFACE
 class interface():
 
 	#CONSTRUCTOR
-	def __init__(self,r,id,nome,conectado):
-		self.r = r
+	def __init__(self,appli,id,nome,conectado):
+		self.r = appli.root
 		self.id = id
 		self.nome = nome
 		self.conectado = conectado
 		
-		self.dhcp = True
+		INFO = os.popen("netsh interface ipv4 show config name=\""+self.nome+"\"").read().splitlines()
 		
-		self.ip = ""
+		while "" in INFO:
+			INFO.remove("")
+		while " " in INFO:
+			INFO.remove(" ")
+
+		for i in INFO:
+			print i
 		
-		self.mascara = ""
+		try:
+			self.dhcp = False if INFO[1].split()[2] == "No" else True
 		
-		self.gateway = ""
+			if self.conectado:
+				self.ip = INFO[2].split()[2].replace(" ","") if INFO[2].split()[1] == "IP:" else ""
+				self.mascara = INFO[3].split()[5].replace(")","").replace(" ","") if INFO[3].split()[0].replace(" ","") == "Prefijo" else ""
+				self.gateway = ""
+				self.dns = ""
+			else:
+				self.ip, self.mascara, self.gateway, self.dns = "", "", "", ""
+		except:
+			self.dhcp = None
+			self.ip, self.mascara, self.gateway, self.dns = "", "", "", ""
+			self.conectado = False
+			escribir_en(appli.textbox,">>> PROBLEMA AO CARGAR A CONFIGURACIÓN DE REDE DE <"+self.nome+">")
 		
-		self.dns = ""
-		
+		#BOTÓNS E CADROS DE TEXTO
 		self.cadro_conectado = ttk.Label(self.r, text="     ", relief="groove", background="green" if self.conectado else "red")
+		
 		self.texto_nome = ttk.Label(self.r, text=self.nome)
-		self.boton_dhcp = ttk.Button(self.r, text="Habilitado" if self.dhcp else "Non", command=self.boton_dhcp,
+		if self.dhcp == None:
+			self.boton_dhcp = ttk.Button(self.r, text="", state="disable")
+		else:
+			self.boton_dhcp = ttk.Button(self.r, text="Habilitado" if self.dhcp else "Non", command=self.boton_dhcp,
 							state="normal" if self.conectado else "disable")
+							
 		self.entrada_ip = ttk.Entry(self.r, text="", width=15, state="normal" if self.conectado and not self.dhcp else "disable")
 		self.entrada_mascara = ttk.Entry(self.r, text="", width=15, state="normal" if self.conectado and not self.dhcp else "disable")
 		self.entrada_gateway = ttk.Entry(self.r, text="", width=15, state="normal" if self.conectado and not self.dhcp else "disable")
@@ -64,9 +99,7 @@ class interface():
 		
 #FUNCIÓN PARA VOLVER A CARGAR TODO
 def actualizar():
-	lista_interfaces = []
-	interfaces_rede()
-	app_init(root)
+	print "Non esta habilitado"
 	
 #FUNCION PARA ESCRIBIR ALGO EN UNHA ENTRADA DE TEXTO
 def escribir_en(entrada,texto,borrar=False):
@@ -76,20 +109,19 @@ def escribir_en(entrada,texto,borrar=False):
 		entrada.delete(0,END)
 		entrada.insert(END,texto)
 	else:
-		entrada.insert(END,texto)
+		entrada.insert(END,texto+"\n")
 	entrada.config(state=estado)
 		
 #FUNCIÓN QUE INSERTA AS INTERFACES NA LISTA lista_interfaces
-def interfaces_rede():
-	global lista_interfaces
+def interfaces_rede(appli):
+	
+	lista_interfaces = []
 	
 	#GARDAR NUNHA VARIABLE A SALIDA DO COMANDO netsh interface show interface
-	info_interfaces = os.popen("netsh interface show interface | more /S +3").read().splitlines()
+	info_interfaces = os.popen("netsh interface show interface | more /S +3").read().splitlines() if Sistema_operativo == "Windows" else None
 	
 	while "" in info_interfaces:
 		info_interfaces.remove("")
-	
-	lista_interfaces = []
 	
 	#RECORRER A VARIABLE info_interfaces PARA SACAR OS DATOS (NOME E ESTADO) E INSERTALOS EN lista_interfaces
 	for linea in range(len(info_interfaces)):
@@ -97,33 +129,35 @@ def interfaces_rede():
 		if info_interfaces[linea].split()[0] == "Habilitado":
 			nome_i = " ".join(info_interfaces[linea].split()[3:])
 			conectado_i = True if info_interfaces[linea].split()[1] == "Conectado" else False
-			lista_interfaces.append(interface(root,linea,nome_i,conectado_i))
+			lista_interfaces.append(interface(appli,linea,nome_i,conectado_i))
 			
-interfaces_rede()
+	return lista_interfaces
 	
 #FUNCIÓN QUE CONFIGURA E DEBUXA TODOS OS ELEMENTOS NA VENTANA
-def app_init(r):
+def app_init(appli):
+	
+	global campo_texto
 
 	#TITULO
-	r.title("Configuración de Interfaces")
+	appli.root.title("Configuración de Interfaces")
 	
 	#CONFIGURACION DA VENTANA
-	r.resizable(width=False, height=True)
-	r.minsize(0,200)
+	appli.root.resizable(width=False, height=True)
+	appli.root.minsize(0,200)
 	
 	#TEXTO, CAMPOS DE TEXTO E BOTÓNS SEGÚN INTERFACES
 	
-	Boton_actualizar = ttk.Button(r, text="ACTUALIZAR", command=actualizar)
+	Boton_actualizar = ttk.Button(appli.root, text="ACTUALIZAR", command=actualizar)
 	Boton_actualizar.grid(row=0, column=0, columnspan=2, pady=5, padx=5, sticky="w")
-	ttk.Label(r, text="INTERFACES DE REDE", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=1, pady=15, padx=5, sticky="we")
-	ttk.Label(r, text="DHCP", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=2, pady=15, padx=5, sticky="we")
-	ttk.Label(r, text="IP", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=3, pady=15, padx=5, sticky="we")
-	ttk.Label(r, text="NETMASK", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=4, pady=15, padx=5, sticky="we")
-	ttk.Label(r, text="GATEWAY", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=5, pady=15, padx=5, sticky="we")
-	ttk.Label(r, text="DNS", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=6, pady=15, padx=5, sticky="we")
+	ttk.Label(appli.root, text="INTERFACES DE REDE", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=1, pady=15, padx=5, sticky="we")
+	ttk.Label(appli.root, text="DHCP", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=2, pady=15, padx=5, sticky="we")
+	ttk.Label(appli.root, text="IP", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=3, pady=15, padx=5, sticky="we")
+	ttk.Label(appli.root, text="NETMASK", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=4, pady=15, padx=5, sticky="we")
+	ttk.Label(appli.root, text="GATEWAY", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=5, pady=15, padx=5, sticky="we")
+	ttk.Label(appli.root, text="DNS", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=6, pady=15, padx=5, sticky="we")
 	
 	#DEBUXAR AS INTERFACES NA VENTANA
-	for interface in lista_interfaces:
+	for interface in appli.interfaces:
 		interface.cadro_conectado.grid(row=interface.id+2, column=0, padx=10, sticky="w")
 		interface.texto_nome.grid(row=interface.id+2, column=1, padx=5, sticky="we")
 		interface.boton_dhcp.grid(row=interface.id+2, column=2, padx=5, sticky="we")
@@ -133,21 +167,18 @@ def app_init(r):
 		interface.entrada_dns.grid(row=interface.id+2, column=6, padx=5, sticky="we")
 		interface.boton.grid(row=interface.id+2, column=7, padx=5, sticky="we")
 		
-	#CAMPO DE TEXTO CON BARRA DE SCROLL
+	#DEBUXAR O CAMPO DE TEXTO CON BARRA DE SCROLL
 	
-	campo_texto=Text(r, height=10, width=85)
-	campo_texto.grid(row=len(lista_interfaces)+2, column=0, columnspan=10, pady=30, padx=15, sticky="w")
-	campo_texto.config(state="disable")
+	appli.textbox.grid(row=len(appli.interfaces)+2, column=0, columnspan=10, pady=30, padx=15, sticky="w")
 	
-	escribir_en(campo_texto,">>> Inicio da aplicación: "+str(datetime.datetime.today()))
-	
-	barra_scroll = ttk.Scrollbar(r, command=campo_texto.yview)
+	barra_scroll = ttk.Scrollbar(appli.root, command=appli.textbox.yview)
 
-	campo_texto.config(yscrollcommand=barra_scroll.set)
+	appli.textbox.config(yscrollcommand=barra_scroll.set)
 	
-	barra_scroll.grid(row=len(lista_interfaces)+2, column=6, padx=10, pady=30, sticky="nse")
-	barra_scroll.config(command=campo_texto.yview)
-
-app_init(root)
-
-mainloop()
+	barra_scroll.grid(row=len(appli.interfaces)+2, column=6, padx=10, pady=30, sticky="nse")
+	barra_scroll.config(command=appli.textbox.yview)
+	
+	escribir_en(appli.textbox,">>> Inicio da aplicación: "+str(time.strftime("%H:%M:%S")))
+	
+if __name__ == "__main__":
+	app = App()
