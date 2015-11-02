@@ -5,10 +5,6 @@ import ttk
 import os
 import time
 
-"""
-netsh interface ipv4 show config name="Ethernet" & netsh interface ipv4 show config name="Wi-Fi"
-"""
-
 Sistema_operativo = "Linux" if os.name == "posix" else "Windows"
 
 #CLASE APP
@@ -36,7 +32,7 @@ class interface():
 		self.nome = nome
 		self.conectado = conectado
 		
-		INFO = os.popen("netsh interface ipv4 show config name=\""+self.nome+"\"").read().splitlines()
+		INFO = os.popen("netsh interface ipv4 show config name=\""+self.nome+"\"").read().splitlines() if Sistema_operativo == "Windows" else ""
 		
 		while "" in INFO:
 			INFO.remove("")
