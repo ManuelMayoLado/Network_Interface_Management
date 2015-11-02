@@ -3,7 +3,9 @@
 from Tkinter import *
 import ttk
 import os
+import re
 import time
+import unicodedata
 
 Sistema_operativo = "Linux" if os.name == "posix" else "Windows"
 
@@ -32,22 +34,21 @@ class interface():
 		self.nome = nome
 		self.conectado = conectado
 		
-		INFO = os.popen("netsh interface ipv4 show config name=\""+self.nome+"\"").read().splitlines() if Sistema_operativo == "Windows" else ""
+		INFO = os.popen("netsh interface ipv4 show config name=\""+self.nome+"\"").read().replace(" ","")
 		
-		while "" in INFO:
-			INFO.remove("")
-		while " " in INFO:
-			INFO.remove(" ")
+		INFO
+		
+		INFO = re.findall('DHCPhabilitado:.+|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',INFO)
+		
 
-		for i in INFO:
-			print i
+		print INFO
 		
 		try:
 			self.dhcp = False if INFO[1].split()[2] == "No" else True
 		
 			if self.conectado:
-				self.ip = INFO[2].split()[2].replace(" ","") if INFO[2].split()[1] == "IP:" else ""
-				self.mascara = INFO[3].split()[5].replace(")","").replace(" ","") if INFO[3].split()[0].replace(" ","") == "Prefijo" else ""
+				self.ip = INFO[0]
+				self.mascara = ""
 				self.gateway = ""
 				self.dns = ""
 			else:
@@ -97,7 +98,7 @@ class interface():
 def actualizar():
 	print "Non esta habilitado"
 	
-#FUNCION PARA ESCRIBIR ALGO EN UNHA ENTRADA DE TEXTO
+#FUNCIÓN PARA ESCRIBIR ALGO EN UNHA ENTRADA DE TEXTO
 def escribir_en(entrada,texto,borrar=False):
 	estado = entrada.cget("state")
 	entrada.config(state="normal")
@@ -107,6 +108,11 @@ def escribir_en(entrada,texto,borrar=False):
 	else:
 		entrada.insert(END,texto+"\n")
 	entrada.config(state=estado)
+	
+#FUNCIÓN PARA QUITAR TILDES DE UNHA CADENA DE TEXTO
+def quitar_tildes(cadena):
+	return "".join(c for c in unicodedata.normalize("NFD",cadena)
+			if unicodedata.category(c) != "Mn").encode()
 		
 #FUNCIÓN QUE INSERTA AS INTERFACES NA LISTA lista_interfaces
 def interfaces_rede(appli):
