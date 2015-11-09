@@ -36,20 +36,15 @@ class interface():
 		
 		INFO = os.popen("netsh interface ipv4 show config name=\""+self.nome+"\"").read().replace(" ","")
 		
-		INFO
-		
-		INFO = re.findall('DHCPhabilitado:.+|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',INFO)
-		
-
-		print INFO
+		#INFO = re.findall('DHCPhabilitado:.+|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}',INFO)
 		
 		try:
-			self.dhcp = False if INFO[1].split()[2] == "No" else True
+			self.dhcp = True if re.findall('DHCPhabilitado:.',INFO)[0] == "S" else False
 		
 			if self.conectado:
-				self.ip = INFO[0]
-				self.mascara = ""
-				self.gateway = ""
+				self.ip = re.findall('IP:(.+)',INFO)[0]
+				self.mascara = re.findall('scara(.+)',INFO)[0]
+				self.gateway = re.findall('Puertadeenlacepredeterminada:(.+)',INFO)[0]
 				self.dns = ""
 			else:
 				self.ip, self.mascara, self.gateway, self.dns = "", "", "", ""
