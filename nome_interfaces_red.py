@@ -14,5 +14,22 @@ def get_connection_name_from_guid(iface_guids):
             pass
     return iface_names
 
-x = ni.interfaces()
-pprint(get_connection_name_from_guid(x))
+interfaces = ni.interfaces()
+
+for i in interfaces:
+	if get_connection_name_from_guid([i]):
+		try:
+			if ni.ifaddresses(i)[2][0]['netmask']:
+				print get_connection_name_from_guid([i]), ni.ifaddresses(i)[2][0]
+		except:
+			try: 
+				if ni.ifaddresses(i)[2]:
+					print get_connection_name_from_guid([i])
+			except:
+				pass
+				
+				
+#### DNS
+
+nslookup_info = os.popen("nslookup").read()
+dns = re.findall('Address:(.+)',nslookup_info)
