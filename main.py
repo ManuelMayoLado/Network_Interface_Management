@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
 
+#
+# FUNCIONA EN WINDOWS E EN LINUX
+#
+# GUI basada en <Tkinter>
+# Configuración das interfaces basado en:
+#	Windows -> netsh
+#	Linux 	-> ifconfig
+
 from Tkinter import *
 import ttk
 import os
 import re
 import time
-import unicodedata
+
+import iface
 
 Sistema_operativo = "Linux" if os.name == "posix" else "Windows"
-
-#
-# POR AHORA SOLO FUNCIONA EN WINDOWS (Español)
-#
-# GUI basada en <Tkinter>
-# Configuración das interfaces basado no comando <netsh>
 
 #CLASE APP
 
@@ -36,14 +39,16 @@ class App():
 class interface():
 
 	#CONSTRUCTOR
-	def __init__(self,appli,id,nome,conectado):
+	def __init__(self,appli,id,nome,conectado,ip,mascara):
 		self.r = appli.root
 		self.id = id
 		self.nome = nome
 		self.conectado = conectado
+		self.ip = ip
+		self.mascara = mascara
 		
-		INFO = os.popen("netsh interface ipv4 show config name=\""+self.nome+"\"").read().replace(" ","")
-		
+		#INFO = os.popen("netsh interface ipv4 show config name=\""+self.nome+"\"").read().replace(" ","")
+		"""
 		try:
 			self.dhcp = True if re.findall('DHCPhabilitado:(.)',INFO)[0] == "S" else False
 		
@@ -64,6 +69,10 @@ class interface():
 			self.ip, self.mascara, self.gateway, self.dns = "", "", "", ""
 			self.conectado = False
 			escribir_en(appli.textbox,">>> ERROR AO CARGAR A CONFIGURACIÓN DE REDE DE <"+self.nome+">")
+		"""
+		
+		self.dhcp = None
+		self.gateway, self.dns = "", ""
 		
 		#BOTÓNS E CADROS DE TEXTO
 		self.cadro_conectado = ttk.Label(self.r, text="     ", relief="groove", background="green" if self.conectado else "red")
@@ -126,19 +135,30 @@ def interfaces_rede(appli):
 	lista_interfaces = []
 	
 	#GARDAR NUNHA VARIABLE A SALIDA DO COMANDO netsh interface show interface
-	info_interfaces = os.popen("netsh interface show interface | more /S +3").read().splitlines() if Sistema_operativo == "Windows" else None
 	
+	#info_interfaces = os.popen("netsh interface show interface | more /S +3").read().splitlines() if Sistema_operativo == "Windows" else None
+	
+	info_interfaces = iface.datos_interfaces()
+	"""
 	while "" in info_interfaces:
 		info_interfaces.remove("")
-	
+	"""
 	#RECORRER A VARIABLE info_interfaces PARA SACAR OS DATOS (NOME E ESTADO) E INSERTALOS EN lista_interfaces
+	"""
 	for linea in range(len(info_interfaces)):
-		
 		if info_interfaces[linea].split()[0] == "Habilitado":
 			nome_i = " ".join(info_interfaces[linea].split()[3:])
 			conectado_i = True if info_interfaces[linea].split()[1] == "Conectado" else False
 			lista_interfaces.append(interface(appli,linea,nome_i,conectado_i))
-			
+	"""
+	for i in range(len(info_interfaces)):
+		nome_i = info_interfaces[i][0]
+		conectado_i = True if len(info_interfaces[i]) > 1 else False
+		if conectado_i:
+			lista_interfaces.append(interface(appli,i,nome_i,conectado_i,info_interfaces[i][1]["addr"],info_interfaces[i][1]["netmask"]))
+		else:
+			lista_interfaces.append(interface(appli,i,nome_i,conectado_i,"",""))
+	
 	return lista_interfaces
 	
 #FUNCIÓN QUE CONFIGURA E DEBUXA TODOS OS ELEMENTOS NA VENTANA
@@ -175,7 +195,7 @@ def app_init(appli):
 		
 	#DEBUXAR O CAMPO DE TEXTO CON BARRA DE SCROLL
 	
-	appli.textbox.grid(row=len(appli.interfaces)+2, column=0, columnspan=10, pady=30, padx=15, sticky="w")
+	appli.textbox.grid(row=len(appli.interfaces)+2, column=0, columnspan=7, pady=30, padx=15, sticky="w")
 	
 	barra_scroll = ttk.Scrollbar(appli.root, command=appli.textbox.yview)
 
