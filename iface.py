@@ -1,6 +1,20 @@
 import netifaces as ni
 import os
 import re
+import threading
+
+class Fio_chamada_os(threading.Thread):
+	def __init__(self,iname):
+		super(Fio_chamada_os, self).__init__()
+		self.iname=iname
+		self.dns=""
+		self.dhcp=""
+	def run(self):
+		try:
+			dns_info = os.popen("netsh interface ipv4 show dns name="+self.iname).read()
+			self.dns = re.findall("\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}",dns_info)
+		except:
+			pass
 
 Sistema_operativo = "Linux" if os.name == "posix" else "Windows"
 
@@ -60,21 +74,21 @@ def datos_interfaces():
 	#OBTER DNS
 	
 	if Sistema_operativo == "Windows":
-			for i in lista_datos_iface:
-				dns_info = os.popen("netsh interface ipv4 show dns name="+i[0]).read()
-				dns = re.findall("\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}",dns_info)
-				if dns:
-					i[2]['dns'] = dns
-				else:
-					i[2]['dns'] = ""
-	
-	for i in lista_datos_iface:
-		print i
+		lista_chamadas_os = []
+		for i in lista_datos_iface:
+			lista_chamadas_os.append(Fio_chamada_os(i[0]))
+			lista_chamadas_os[-1].start()
+			
+		for i in lista_chamadas_os:
+			i.join()
+			
+		for i in range(len(lista_datos_iface)):
+			lista_datos_iface[i][2]['dns'] = lista_chamadas_os[i].dns
 	
 	return [i for i in lista_datos_iface if i[0] != "lo"]
 	
-for interface in datos_interfaces():
-	print interface
+#for interface in datos_interfaces():
+#	print interface
 
 	#### DNS
 

@@ -24,7 +24,11 @@ class App():
 		self.root = Tk()
 		self.textbox = Text(self.root, height=10, width=85, state="disable")
 		escribir_en(self.textbox,">>> Inicio da aplicación: "+str(time.strftime("%H:%M:%S")))
+		self.frame_titulos = ttk.Frame(self.root, relief="groove")
+		self.frame_ifaces = ttk.Frame(self.root, relief="groove")
 		self.interfaces = interfaces_rede(self)
+		self.frame_titulos.grid(padx=40, row=1, column=0, columnspan=7)
+		self.frame_ifaces.grid(padx=10, pady=5, row=2, column=0, columnspan=8)
 		app_init(self)
 		#self.time_update()
 		self.root.mainloop()
@@ -48,47 +52,24 @@ class interface():
 		self.gateway = gateway
 		self.dns = dns
 		
-		#INFO = os.popen("netsh interface ipv4 show config name=\""+self.nome+"\"").read().replace(" ","")
-		"""
-		try:
-			self.dhcp = True if re.findall('DHCPhabilitado:(.)',INFO)[0] == "S" else False
-		
-			if self.conectado:
-				ip = re.findall('IP:(.+)',INFO)
-				self.ip = ip[0] if ip else ""
-				mascara = re.findall('scara(.+)\)',INFO)
-				self.mascara = mascara[0] if mascara else ""
-				gateway = re.findall('Puertadeenlacepredeterminada:(.+)',INFO)
-				self.gateway = gateway[0] if gateway else ""
-				dns = (re.findall('ServidoresDNSconfiguradosest\xa0ticamente:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})',INFO)
-					if not self.dhcp else re.findall('ServidoresDNSconfiguradosatrav\x82sdeDHCP:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})',INFO) )
-				self.dns = dns[0] if dns else ""
-			else:
-				self.ip, self.mascara, self.gateway, self.dns = "", "", "", ""
-		except:
-			self.dhcp = None
-			self.ip, self.mascara, self.gateway, self.dns = "", "", "", ""
-			self.conectado = False
-			escribir_en(appli.textbox,">>> ERROR AO CARGAR A CONFIGURACIÓN DE REDE DE <"+self.nome+">")
-		"""
-		
 		self.dhcp = None
 		
 		#BOTÓNS E CADROS DE TEXTO
-		self.cadro_conectado = ttk.Label(self.r, text="     ", relief="groove", background="green" if self.conectado else "red")
+		self.cadro_conectado = ttk.Label(appli.frame_ifaces, text="     ", relief="groove", background="green" if self.conectado else "red")
 		
-		self.texto_nome = ttk.Label(self.r, text=self.nome)
+		self.texto_nome = ttk.Label(appli.frame_ifaces, text=self.nome, width=30)
 		if self.dhcp == None:
-			self.boton_dhcp = ttk.Button(self.r, text="", state="disable")
+			self.boton_dhcp = ttk.Button(appli.frame_ifaces, text="", state="disable")
 		else:
-			self.boton_dhcp = ttk.Button(self.r, text="Habilitado" if self.dhcp else "Non", command=self.boton_dhcp,
+			self.boton_dhcp = ttk.Button(appli.frame_ifaces, text="Habilitado" if self.dhcp else "Non", command=self.boton_dhcp,
 							state="normal" if self.conectado else "disable")
 							
-		self.entrada_ip = ttk.Entry(self.r, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_mascara = ttk.Entry(self.r, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_gateway = ttk.Entry(self.r, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_dns = ttk.Entry(self.r, width=15, state="normal" if self.conectado else "disable")
-		self.boton = ttk.Button(self.r, text="CAMBIAR", width=15, command=self.boton_cambiar, state="normal" if self.conectado else "disable")
+							
+		self.entrada_ip = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
+		self.entrada_mascara = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
+		self.entrada_gateway = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
+		self.entrada_dns = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado else "disable")
+		self.boton = ttk.Button(appli.frame_ifaces, text="CAMBIAR", width=15, command=self.boton_cambiar, state="normal" if self.conectado else "disable")
 		
 		#ESCRIBIR OS PARAMETROS NAS ENTRADAS DE TEXTO
 		escribir_en(self.entrada_ip,self.ip,True)
@@ -139,18 +120,7 @@ def interfaces_rede(appli):
 	#info_interfaces = os.popen("netsh interface show interface | more /S +3").read().splitlines() if Sistema_operativo == "Windows" else None
 	
 	info_interfaces = iface.datos_interfaces()
-	"""
-	while "" in info_interfaces:
-		info_interfaces.remove("")
-	"""
-	#RECORRER A VARIABLE info_interfaces PARA SACAR OS DATOS (NOME E ESTADO) E INSERTALOS EN lista_interfaces
-	"""
-	for linea in range(len(info_interfaces)):
-		if info_interfaces[linea].split()[0] == "Habilitado":
-			nome_i = " ".join(info_interfaces[linea].split()[3:])
-			conectado_i = True if info_interfaces[linea].split()[1] == "Conectado" else False
-			lista_interfaces.append(interface(appli,linea,nome_i,conectado_i))
-	"""
+	
 	for i in range(len(info_interfaces)):
 		nome_i = info_interfaces[i][0]
 		conectado_i = True if 'addr' in info_interfaces[i][2] else False
@@ -179,23 +149,24 @@ def app_init(appli):
 	
 	Boton_actualizar = ttk.Button(appli.root, text="ACTUALIZAR", command=lambda: actualizar(appli))
 	Boton_actualizar.grid(row=0, column=0, columnspan=2, pady=5, padx=5, sticky="w")
-	ttk.Label(appli.root, text="INTERFACES DE REDE", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=1, pady=15, padx=5, sticky="we")
-	ttk.Label(appli.root, text="DHCP", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=2, pady=15, padx=5, sticky="we")
-	ttk.Label(appli.root, text="IP", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=3, pady=15, padx=5, sticky="we")
-	ttk.Label(appli.root, text="NETMASK", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=4, pady=15, padx=5, sticky="we")
-	ttk.Label(appli.root, text="GATEWAY", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=5, pady=15, padx=5, sticky="we")
-	ttk.Label(appli.root, text="DNS", relief="groove", background="#C6F1F5", anchor="c").grid(row=1, column=6, pady=15, padx=5, sticky="we")
+	ttk.Label(appli.frame_titulos, text="INTERFACES DE REDE", relief="groove", background="#C6F1F5", anchor="c", width=30).grid(row=1, column=1, sticky="we")
+	ttk.Label(appli.frame_titulos, text="DHCP", relief="groove", background="#C6F1F5", anchor="c", width=10).grid(row=1, column=2, sticky="we")
+	ttk.Label(appli.frame_titulos, text="IP", relief="groove", background="#C6F1F5", anchor="c", width=20).grid(row=1, column=3, sticky="we")
+	ttk.Label(appli.frame_titulos, text="NETMASK", relief="groove", background="#C6F1F5", anchor="c", width=20).grid(row=1, column=4, sticky="we")
+	ttk.Label(appli.frame_titulos, text="GATEWAY", relief="groove", background="#C6F1F5", anchor="c", width=20).grid(row=1, column=5, sticky="we")
+	ttk.Label(appli.frame_titulos, text="DNS", relief="groove", background="#C6F1F5", anchor="c", width=20).grid(row=1, column=6, sticky="we")
 	
 	#DEBUXAR AS INTERFACES NA VENTANA
+
 	for interface in appli.interfaces:
-		interface.cadro_conectado.grid(row=interface.id+2, column=0, padx=10, sticky="w")
-		interface.texto_nome.grid(row=interface.id+2, column=1, padx=5, sticky="we")
-		interface.boton_dhcp.grid(row=interface.id+2, column=2, padx=5, sticky="we")
-		interface.entrada_ip.grid(row=interface.id+2, column=3, padx=5, sticky="we")
-		interface.entrada_mascara.grid(row=interface.id+2, column=4, padx=5, sticky="we")
-		interface.entrada_gateway.grid(row=interface.id+2, column=5, padx=5, sticky="we")
-		interface.entrada_dns.grid(row=interface.id+2, column=6, padx=5, sticky="we")
-		interface.boton.grid(row=interface.id+2, column=7, padx=5, sticky="we")
+		interface.cadro_conectado.grid(row=interface.id, column=0, pady=5, padx=10,  sticky="w")
+		interface.texto_nome.grid(row=interface.id, column=1, pady=5, padx=5, sticky="we")
+		interface.boton_dhcp.grid(row=interface.id, column=2, pady=5, padx=5, sticky="we")
+		interface.entrada_ip.grid(row=interface.id, column=3, pady=5, padx=5, sticky="we")
+		interface.entrada_mascara.grid(row=interface.id, column=4, pady=5, padx=5, sticky="we")
+		interface.entrada_gateway.grid(row=interface.id, column=5, pady=5, padx=5, sticky="we")
+		interface.entrada_dns.grid(row=interface.id, column=6, pady=5, padx=5, sticky="we")
+		interface.boton.grid(row=interface.id, column=7, pady=5, padx=5, sticky="we")
 		
 	#DEBUXAR O CAMPO DE TEXTO CON BARRA DE SCROLL
 	
