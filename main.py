@@ -38,7 +38,7 @@ class App():
 class interface():
 
 	#CONSTRUCTOR
-	def __init__(self,appli,id,nome,conectado,ip,mascara,gateway):
+	def __init__(self,appli,id,nome,conectado,ip,mascara,gateway,dns):
 		self.r = appli.root
 		self.id = id
 		self.nome = nome
@@ -46,6 +46,7 @@ class interface():
 		self.ip = ip
 		self.mascara = mascara
 		self.gateway = gateway
+		self.dns = dns
 		
 		#INFO = os.popen("netsh interface ipv4 show config name=\""+self.nome+"\"").read().replace(" ","")
 		"""
@@ -72,7 +73,6 @@ class interface():
 		"""
 		
 		self.dhcp = None
-		self.dns = ""
 		
 		#BOTÓNS E CADROS DE TEXTO
 		self.cadro_conectado = ttk.Label(self.r, text="     ", relief="groove", background="green" if self.conectado else "red")
@@ -153,14 +153,15 @@ def interfaces_rede(appli):
 	"""
 	for i in range(len(info_interfaces)):
 		nome_i = info_interfaces[i][0]
-		conectado_i = True if len(info_interfaces[i]) > 1 else False
+		conectado_i = True if 'addr' in info_interfaces[i][2] else False
 		if conectado_i:
 			lista_interfaces.append(
                 interface(
                     appli,i,nome_i,conectado_i,info_interfaces[i][2]["addr"],info_interfaces[i][2]["netmask"],
-                    info_interfaces[i][2]["gateway"]))
+                    info_interfaces[i][2]["gateway"]," ".join(info_interfaces[i][2]["dns"])))
 		else:
-			lista_interfaces.append(interface(appli,i,nome_i,conectado_i,"","",""))
+			lista_interfaces.append(interface(appli,i,nome_i,conectado_i,"","",info_interfaces[i][2]["gateway"],
+					" ".join(info_interfaces[i][2]["dns"])))
 	
 	return lista_interfaces
 	
