@@ -48,10 +48,11 @@ def datos_interfaces():
 
     for i in lista_datos_iface:
         if len(i) > 2:
-            if i[1] in gateways['default'][ni.AF_INET]:
-                i[2]['gateway'] = gateways['default'][ni.AF_INET][0]
-            else:
-                i[2]['gateway'] = ""
+			for x in gateways[ni.AF_INET]:
+				if i[1] in x:
+					i[2]['gateway'] = x[0]
+			if not 'gateway' in i[2]:
+				i[2]['gateway'] = ""
 
     return [i for i in lista_datos_iface if i[0] != "lo"]
 
