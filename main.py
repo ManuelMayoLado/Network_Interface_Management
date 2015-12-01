@@ -22,13 +22,11 @@ Sistema_operativo = "Linux" if os.name == "posix" else "Windows"
 class App():
 	def __init__(self):
 		self.root = Tk()
-		self.textbox = Text(self.root, height=10, width=85, state="disable")
-		escribir_en(self.textbox,">>> Inicio da aplicación: "+str(time.strftime("%H:%M:%S")))
-		self.frame_titulos = ttk.Frame(self.root, relief="groove")
-		self.frame_ifaces = ttk.Frame(self.root, relief="groove")
+		self.log = ttk.Treeview(self.root, columns=["log"], show="tree")
+		actualizar_log(self.log,">>> Inicio da aplicación: "+str(time.strftime("%H:%M:%S")))
+		self.listbox_interfaces = ttk.Treeview(self.root, columns=["ifaces"], show="headings")
 		self.interfaces = interfaces_rede(self)
-		self.frame_titulos.grid(padx=40, row=1, column=0, columnspan=7)
-		self.frame_ifaces.grid(padx=10, pady=5, row=2, column=0, columnspan=8)
+		self.listbox_interfaces.grid(row=1, column=0, pady=10)
 		app_init(self)
 		#self.time_update()
 		self.root.mainloop()
@@ -55,27 +53,27 @@ class interface():
 		self.dhcp = None
 		
 		#BOTÓNS E CADROS DE TEXTO
-		self.cadro_conectado = ttk.Label(appli.frame_ifaces, text="     ", relief="groove", background="green" if self.conectado else "red")
+		#self.cadro_conectado = ttk.Label(appli.frame_ifaces, text="     ", relief="groove", background="green" if self.conectado else "red")
 		
-		self.texto_nome = ttk.Label(appli.frame_ifaces, text=self.nome, width=30)
-		if self.dhcp == None:
-			self.boton_dhcp = ttk.Button(appli.frame_ifaces, text="", state="disable")
-		else:
-			self.boton_dhcp = ttk.Button(appli.frame_ifaces, text="Habilitado" if self.dhcp else "Non", command=self.boton_dhcp,
-							state="normal" if self.conectado else "disable")
+		#self.texto_nome = ttk.Label(appli.frame_ifaces, text=self.nome, width=30)
+		#if self.dhcp == None:
+		#	self.boton_dhcp = ttk.Button(appli.frame_ifaces, text="", state="disable")
+		#else:
+		#	self.boton_dhcp = ttk.Button(appli.frame_ifaces, text="Habilitado" if self.dhcp else "Non", command=self.boton_dhcp,
+		#					state="normal" if self.conectado else "disable")
 							
 							
-		self.entrada_ip = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_mascara = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_gateway = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_dns = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado else "disable")
-		self.boton = ttk.Button(appli.frame_ifaces, text="CAMBIAR", width=15, command=self.boton_cambiar, state="normal" if self.conectado else "disable")
+		#self.entrada_ip = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
+		#self.entrada_mascara = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
+		#self.entrada_gateway = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
+		#self.entrada_dns = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado else "disable")
+		#self.boton = ttk.Button(appli.frame_ifaces, text="CAMBIAR", width=15, command=self.boton_cambiar, state="normal" if self.conectado else "disable")
 		
 		#ESCRIBIR OS PARAMETROS NAS ENTRADAS DE TEXTO
-		escribir_en(self.entrada_ip,self.ip,True)
-		escribir_en(self.entrada_mascara,self.mascara,True)
-		escribir_en(self.entrada_gateway,self.gateway,True)
-		escribir_en(self.entrada_dns,self.dns,True)
+		#escribir_en(self.entrada_ip,self.ip,True)
+		#escribir_en(self.entrada_mascara,self.mascara,True)
+		#escribir_en(self.entrada_gateway,self.gateway,True)
+		#escribir_en(self.entrada_dns,self.dns,True)
 	
 	#FUNCION PARA EXECUTAR CANDO SE PULSE O BOTÓN DHCP
 	def boton_dhcp(self):
@@ -109,6 +107,9 @@ def escribir_en(entrada,texto,borrar=False):
 	else:
 		entrada.insert(END,texto+"\n")
 	entrada.config(state=estado)
+	
+def actualizar_log(treeview,texto):
+	treeview.insert("","end",texto)
 		
 #FUNCIÓN QUE INSERTA AS INTERFACES NA LISTA lista_interfaces
 def interfaces_rede(appli):
@@ -142,42 +143,42 @@ def app_init(appli):
 	appli.root.title("Configuración de Interfaces de Rede")
 	
 	#CONFIGURACION DA VENTANA
-	appli.root.resizable(width=False, height=True)
-	appli.root.minsize(0,200)
+	appli.root.resizable(width=False, height=False)
+	appli.root.minsize(720,500)
 	
 	#TEXTO, CAMPOS DE TEXTO E BOTÓNS SEGÚN INTERFACES
 	
 	Boton_actualizar = ttk.Button(appli.root, text="ACTUALIZAR", command=lambda: actualizar(appli))
 	Boton_actualizar.grid(row=0, column=0, columnspan=2, pady=5, padx=5, sticky="w")
-	ttk.Label(appli.frame_titulos, text="INTERFACES DE REDE", relief="groove", background="#C6F1F5", anchor="c", width=30).grid(row=1, column=1, sticky="we")
-	ttk.Label(appli.frame_titulos, text="DHCP", relief="groove", background="#C6F1F5", anchor="c", width=10).grid(row=1, column=2, sticky="we")
-	ttk.Label(appli.frame_titulos, text="IP", relief="groove", background="#C6F1F5", anchor="c", width=20).grid(row=1, column=3, sticky="we")
-	ttk.Label(appli.frame_titulos, text="NETMASK", relief="groove", background="#C6F1F5", anchor="c", width=20).grid(row=1, column=4, sticky="we")
-	ttk.Label(appli.frame_titulos, text="GATEWAY", relief="groove", background="#C6F1F5", anchor="c", width=20).grid(row=1, column=5, sticky="we")
-	ttk.Label(appli.frame_titulos, text="DNS", relief="groove", background="#C6F1F5", anchor="c", width=20).grid(row=1, column=6, sticky="we")
+	#ttk.Label(appli.frame_titulos, text="INTERFACES DE REDE", relief="groove", background="#C6F1F5", anchor="c", width=30).grid(row=1, column=1, sticky="we")
+	#ttk.Label(appli.frame_titulos, text="DHCP", relief="groove", background="#C6F1F5", anchor="c", width=10).grid(row=1, column=2, sticky="we")
+	#ttk.Label(appli.frame_titulos, text="IP", relief="groove", background="#C6F1F5", anchor="c", width=20).grid(row=1, column=3, sticky="we")
+	#ttk.Label(appli.frame_titulos, text="NETMASK", relief="groove", background="#C6F1F5", anchor="c", width=20).grid(row=1, column=4, sticky="we")
+	#ttk.Label(appli.frame_titulos, text="GATEWAY", relief="groove", background="#C6F1F5", anchor="c", width=20).grid(row=1, column=5, sticky="we")
+	#ttk.Label(appli.frame_titulos, text="DNS", relief="groove", background="#C6F1F5", anchor="c", width=20).grid(row=1, column=6, sticky="we")
 	
 	#DEBUXAR AS INTERFACES NA VENTANA
-
+	
+	appli.listbox_interfaces.heading("ifaces", text="Interfaces de Rede")
+	
 	for interface in appli.interfaces:
-		interface.cadro_conectado.grid(row=interface.id, column=0, pady=5, padx=10,  sticky="w")
-		interface.texto_nome.grid(row=interface.id, column=1, pady=5, padx=5, sticky="we")
-		interface.boton_dhcp.grid(row=interface.id, column=2, pady=5, padx=5, sticky="we")
-		interface.entrada_ip.grid(row=interface.id, column=3, pady=5, padx=5, sticky="we")
-		interface.entrada_mascara.grid(row=interface.id, column=4, pady=5, padx=5, sticky="we")
-		interface.entrada_gateway.grid(row=interface.id, column=5, pady=5, padx=5, sticky="we")
-		interface.entrada_dns.grid(row=interface.id, column=6, pady=5, padx=5, sticky="we")
-		interface.boton.grid(row=interface.id, column=7, pady=5, padx=5, sticky="we")
-		
+		appli.listbox_interfaces.insert("","end",values=interface.nome.replace(" ","_"))
+	#	interface.cadro_conectado.grid(row=interface.id, column=0, pady=5, padx=10,  sticky="w")
+	#	interface.texto_nome.grid(row=interface.id, column=1, pady=5, padx=5, sticky="we")
+	#	interface.boton_dhcp.grid(row=interface.id, column=2, pady=5, padx=5, sticky="we")
+	#	interface.entrada_ip.grid(row=interface.id, column=3, pady=5, padx=5, sticky="we")
+	#	interface.entrada_mascara.grid(row=interface.id, column=4, pady=5, padx=5, sticky="we")
+	#	interface.entrada_gateway.grid(row=interface.id, column=5, pady=5, padx=5, sticky="we")
+	#	interface.entrada_dns.grid(row=interface.id, column=6, pady=5, padx=5, sticky="we")
+	#	interface.boton.grid(row=interface.id, column=7, pady=5, padx=5, sticky="we")
+	
 	#DEBUXAR O CAMPO DE TEXTO CON BARRA DE SCROLL
 	
-	appli.textbox.grid(row=len(appli.interfaces)+2, column=0, columnspan=7, pady=30, padx=15, sticky="w")
+	appli.log.grid(row=2, column=0, columnspan=1, pady=30, padx=15, sticky="w")
 	
-	barra_scroll = ttk.Scrollbar(appli.root, command=appli.textbox.yview)
-
-	appli.textbox.config(yscrollcommand=barra_scroll.set)
+	yscroll_log = ttk.Scrollbar(orient="vertical",command=appli.log.xview)
 	
-	barra_scroll.grid(row=len(appli.interfaces)+2, column=6, padx=10, pady=30, sticky="nse")
-	barra_scroll.config(command=appli.textbox.yview)
+	yscroll_log.grid(row=2, column=7, pady=30, sticky='ns')
 	
 if __name__ == "__main__":
 	app = App()
