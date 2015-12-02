@@ -22,17 +22,19 @@ Sistema_operativo = "Linux" if os.name == "posix" else "Windows"
 class App():
 	def __init__(self):
 		self.root = Tk()
-		self.log = ttk.Treeview(self.root, columns=["log"], show="tree")
-		actualizar_log(self.log,">>> Inicio da aplicación: "+str(time.strftime("%H:%M:%S")))
-		self.listbox_interfaces = ttk.Treeview(self.root, columns=["ifaces"], show="headings")
+		self.log = ttk.Treeview(self.root, columns=["log"], show="headings", selectmode="none")
+		self.log.heading("log", text="Log")
+		actualizar_log(self.log,str(time.strftime("%H:%M:%S"))+"  >>> Inicio da aplicación")
+		self.listbox_interfaces = ttk.Treeview(self.root, columns=["ifaces"], show="headings", selectmode="browse")
+		self.frame_config = ttk.Frame(relief="groove")
 		self.interfaces = interfaces_rede(self)
-		self.listbox_interfaces.grid(row=1, column=0, pady=10)
+		self.listbox_interfaces.place(x=10, y=60, width=200, height=200)
 		app_init(self)
-		#self.time_update()
+	#	self.time_update()
 		self.root.mainloop()
 		
 	#def time_update(self):
-	#	escribir_en(self.textbox,str(time.strftime("%H:%M:%S")))
+	#	actualizar_log(self.log,str(time.strftime("%H:%M:%S")))
 	#	self.root.after(1000, self.time_update)
 		
 
@@ -93,9 +95,11 @@ class interface():
 				"GATEWAY:",self.entrada_gateway.get(), "DNS:",self.entrada_dns.get())
 		
 #FUNCIÓN PARA VOLVER A CARGAR TODO
-def actualizar(apli):
-	apli.interfaces = interfaces_rede(apli)
-	app_init(apli)
+def actualizar(appli):
+	appli.listbox_interfaces = ttk.Treeview(appli.root, columns=["ifaces"], show="headings")
+	appli.interfaces = interfaces_rede(appli)
+	appli.listbox_interfaces.place(x=10, y=60, width=200, height=200)
+	app_init(appli)
 	
 #FUNCIÓN PARA ESCRIBIR ALGO EN UNHA ENTRADA DE TEXTO
 def escribir_en(entrada,texto,borrar=False):
@@ -109,7 +113,13 @@ def escribir_en(entrada,texto,borrar=False):
 	entrada.config(state=estado)
 	
 def actualizar_log(treeview,texto):
-	treeview.insert("","end",texto)
+	treeview.insert("","end",values=[texto])
+	
+def actualizar_configuracion(appli):
+		ttk.Label(appli.frame_config, text="DHCP:").grid(row=0, column=0, padx=10, pady=25, sticky="we")
+		ttk.Label(appli.frame_config, text="IP:").grid(row=1, column=0, padx=10, pady=10, sticky="we")
+		ttk.Label(appli.frame_config, text="NETMASK:").grid(row=2, column=0, padx=10, pady=10, sticky="we")
+		ttk.Label(appli.frame_config, text="GATEWAY:").grid(row=3, column=0, padx=10, pady=10, sticky="we")
 		
 #FUNCIÓN QUE INSERTA AS INTERFACES NA LISTA lista_interfaces
 def interfaces_rede(appli):
@@ -124,7 +134,7 @@ def interfaces_rede(appli):
 	
 	for i in range(len(info_interfaces)):
 		nome_i = info_interfaces[i][0]
-		conectado_i = True if 'addr' in info_interfaces[i][2] else False
+		conectado_i = info_interfaces[i][2]['conectado']
 		if conectado_i:
 			lista_interfaces.append(
                 interface(
@@ -133,8 +143,11 @@ def interfaces_rede(appli):
 		else:
 			lista_interfaces.append(interface(appli,i,nome_i,conectado_i,"","",info_interfaces[i][2]["gateway"],
 					" ".join(info_interfaces[i][2]["dns"])))
-	
-	return lista_interfaces
+					
+	for i in info_interfaces:
+		print i
+					
+	return sorted(lista_interfaces, key=lambda interface: interface.conectado, reverse=True)
 	
 #FUNCIÓN QUE CONFIGURA E DEBUXA TODOS OS ELEMENTOS NA VENTANA
 def app_init(appli):
@@ -144,12 +157,12 @@ def app_init(appli):
 	
 	#CONFIGURACION DA VENTANA
 	appli.root.resizable(width=False, height=False)
-	appli.root.minsize(720,500)
+	appli.root.minsize(680,470)
 	
 	#TEXTO, CAMPOS DE TEXTO E BOTÓNS SEGÚN INTERFACES
 	
 	Boton_actualizar = ttk.Button(appli.root, text="ACTUALIZAR", command=lambda: actualizar(appli))
-	Boton_actualizar.grid(row=0, column=0, columnspan=2, pady=5, padx=5, sticky="w")
+	Boton_actualizar.place(x=10,y=10)
 	#ttk.Label(appli.frame_titulos, text="INTERFACES DE REDE", relief="groove", background="#C6F1F5", anchor="c", width=30).grid(row=1, column=1, sticky="we")
 	#ttk.Label(appli.frame_titulos, text="DHCP", relief="groove", background="#C6F1F5", anchor="c", width=10).grid(row=1, column=2, sticky="we")
 	#ttk.Label(appli.frame_titulos, text="IP", relief="groove", background="#C6F1F5", anchor="c", width=20).grid(row=1, column=3, sticky="we")
@@ -162,7 +175,8 @@ def app_init(appli):
 	appli.listbox_interfaces.heading("ifaces", text="Interfaces de Rede")
 	
 	for interface in appli.interfaces:
-		appli.listbox_interfaces.insert("","end",values=interface.nome.replace(" ","_"))
+		appli.listbox_interfaces.insert("","end",values=[interface.nome], 
+				tags="conectada" if interface.conectado else "desconectada")
 	#	interface.cadro_conectado.grid(row=interface.id, column=0, pady=5, padx=10,  sticky="w")
 	#	interface.texto_nome.grid(row=interface.id, column=1, pady=5, padx=5, sticky="we")
 	#	interface.boton_dhcp.grid(row=interface.id, column=2, pady=5, padx=5, sticky="we")
@@ -172,13 +186,41 @@ def app_init(appli):
 	#	interface.entrada_dns.grid(row=interface.id, column=6, pady=5, padx=5, sticky="we")
 	#	interface.boton.grid(row=interface.id, column=7, pady=5, padx=5, sticky="we")
 	
-	#DEBUXAR O CAMPO DE TEXTO CON BARRA DE SCROLL
+	#COLOR DAS INTERFACES
 	
-	appli.log.grid(row=2, column=0, columnspan=1, pady=30, padx=15, sticky="w")
+	appli.listbox_interfaces.tag_configure("conectada", background="#eeffe5")
+	appli.listbox_interfaces.tag_configure("desconectada", background="#ffd8cc")
 	
-	yscroll_log = ttk.Scrollbar(orient="vertical",command=appli.log.xview)
+	#DEBUXAR O CAMPO DE TEXTO (LOG) CON BARRA DE SCROLL
 	
-	yscroll_log.grid(row=2, column=7, pady=30, sticky='ns')
+	appli.log.place(x=10,y=300,width=650,height=150)
+	
+	yscroll_log = ttk.Scrollbar(orient="vertical",command=appli.log.yview)
+	
+	appli.log.configure(yscrollcommand=yscroll_log.set)
+	
+	yscroll_log.place(x=650,y=300,height=150)
+	
+	#DEBUXAR AS BARRAS DE SCROOL DA CAIXA DAS INTERFACES
+	
+	yscroll_ifaces = ttk.Scrollbar(orient="vertical",command=appli.listbox_interfaces.yview)
+	xscroll_ifaces = ttk.Scrollbar(orient="horizontal",command=appli.listbox_interfaces.xview)
+	
+	appli.listbox_interfaces.configure(yscrollcommand=yscroll_ifaces.set, xscrollcommand=xscroll_ifaces.set)
+	
+	yscroll_ifaces.place(x=200,y=60,height=200)
+	xscroll_ifaces.place(x=10,y=258,width=190)
+	
+	#DEBUXAR O FRAME DAS CONFIGURACIÓNS
+	
+	appli.frame_config.place(x=250,y=60,width=400,height=200)
+	
+	actualizar_configuracion(appli)
+	
+	appli.listbox_interfaces.column("ifaces",width=195)
+	
+	ttk.Style().configure("TFrame", background="#f9f9f9")
+	ttk.Style().configure("TLabel", background="#f9f9f9")
 	
 if __name__ == "__main__":
 	app = App()

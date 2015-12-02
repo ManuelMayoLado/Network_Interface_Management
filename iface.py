@@ -13,6 +13,8 @@ class Fio_chamada_os(threading.Thread):
 		try:
 			dns_info = os.popen("netsh interface ipv4 show dns name="+self.iname).read()
 			self.dns = re.findall("\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}",dns_info)
+			conectado_info = os.popen("netsh interface ipv4 show interfaces").read().replace(" ","")
+			self.conectado = True if re.findall("\dconnected"+self.iname.replace(" ",""),conectado_info) else False
 		except:
 			pass
 
@@ -84,6 +86,9 @@ def datos_interfaces():
 			
 		for i in range(len(lista_datos_iface)):
 			lista_datos_iface[i][2]['dns'] = lista_chamadas_os[i].dns
+			lista_datos_iface[i][2]['conectado'] = lista_chamadas_os[i].conectado
+			
+			print lista_datos_iface[i]
 	
 	return [i for i in lista_datos_iface if i[0] != "lo"]
 	
