@@ -29,6 +29,7 @@ class App():
 		self.frame_config = ttk.Frame(relief="groove")
 		self.interfaces = interfaces_rede(self)
 		self.listbox_interfaces.place(x=10, y=60, width=200, height=200)
+		estilo_global()
 		app_init(self)
 	#	self.time_update()
 		self.root.mainloop()
@@ -93,8 +94,11 @@ class interface():
 	def boton_cambiar(self):
 		print ("DHCP:",self.boton_dhcp.cget("text"), "IP:",self.entrada_ip.get(), "MASK:",self.entrada_mascara.get(),
 				"GATEWAY:",self.entrada_gateway.get(), "DNS:",self.entrada_dns.get())
+				
+	def seleccionar_interface(self):
+		actualizar_configuracion(self)
 		
-#FUNCIÓN PARA VOLVER A CARGAR TODO
+#FUNCIÓN PARA VOLVER A CARGAR TODO, EXECUTASE AO PULSAR O BOTÓN "ACTUALIZAR"
 def actualizar(appli):
 	appli.listbox_interfaces = ttk.Treeview(appli.root, columns=["ifaces"], show="headings")
 	appli.interfaces = interfaces_rede(appli)
@@ -111,15 +115,24 @@ def escribir_en(entrada,texto,borrar=False):
 	else:
 		entrada.insert(END,texto+"\n")
 	entrada.config(state=estado)
-	
+
+#FUNCIÓN PARA ESCRIBIR ENTRADAS NO LOG
 def actualizar_log(treeview,texto):
 	treeview.insert("","end",values=[texto])
 	
+#FUNCIÓN PARA DEBUXAR TODO NO FRAME DA CONFIGURACIÓN, POR CADA INTERFACE
 def actualizar_configuracion(appli):
-		ttk.Label(appli.frame_config, text="DHCP:").grid(row=0, column=0, padx=10, pady=25, sticky="we")
+		ttk.Checkbutton(appli.frame_config, text="DHCP").grid(row=0, column=0, padx=10, pady=25, sticky="we")
 		ttk.Label(appli.frame_config, text="IP:").grid(row=1, column=0, padx=10, pady=10, sticky="we")
 		ttk.Label(appli.frame_config, text="NETMASK:").grid(row=2, column=0, padx=10, pady=10, sticky="we")
 		ttk.Label(appli.frame_config, text="GATEWAY:").grid(row=3, column=0, padx=10, pady=10, sticky="we")
+		ttk.Checkbutton(appli.frame_config, text="DHCP").grid(row=0, column=0, padx=10, pady=25, sticky="we")
+
+#FUNCIÓN QUE DETERMINA O ESTILO GLOBAL		
+def estilo_global():
+	ttk.Style().configure("TFrame", background="#f9f9f9")
+	ttk.Style().configure("TLabel", background="#f9f9f9")
+	ttk.Style().configure("TCheckbutton", background="#f9f9f9")
 		
 #FUNCIÓN QUE INSERTA AS INTERFACES NA LISTA lista_interfaces
 def interfaces_rede(appli):
@@ -215,12 +228,7 @@ def app_init(appli):
 	
 	appli.frame_config.place(x=250,y=60,width=400,height=200)
 	
-	actualizar_configuracion(appli)
-	
 	appli.listbox_interfaces.column("ifaces",width=195)
-	
-	ttk.Style().configure("TFrame", background="#f9f9f9")
-	ttk.Style().configure("TLabel", background="#f9f9f9")
 	
 if __name__ == "__main__":
 	app = App()
