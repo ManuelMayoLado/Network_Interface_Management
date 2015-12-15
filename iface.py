@@ -87,8 +87,6 @@ def datos_interfaces():
 		for i in range(len(lista_datos_iface)):
 			lista_datos_iface[i][2]['dns'] = lista_chamadas_os[i].dns
 			lista_datos_iface[i][2]['conectado'] = lista_chamadas_os[i].conectado
-			
-			print lista_datos_iface[i]
 	
 	return [i for i in lista_datos_iface if i[0] != "lo"]
 	

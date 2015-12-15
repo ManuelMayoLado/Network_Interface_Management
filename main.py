@@ -22,16 +22,25 @@ Sistema_operativo = "Linux" if os.name == "posix" else "Windows"
 class App():
 	def __init__(self):
 		self.root = Tk()
+		
 		self.log = ttk.Treeview(self.root, columns=["log"], show="headings", selectmode="none")
 		self.log.heading("log", text="Log")
 		actualizar_log(self.log,str(time.strftime("%H:%M:%S"))+"  >>> Inicio da aplicación")
+		
 		self.listbox_interfaces = ttk.Treeview(self.root, columns=["ifaces"], show="headings", selectmode="browse")
-		self.frame_config = ttk.Frame(relief="groove")
 		self.interfaces = interfaces_rede(self)
 		self.listbox_interfaces.place(x=10, y=60, width=200, height=200)
+		
+		self.frame_config = ttk.Frame(relief="groove")
+		igc = ifaces_graphic_config(self)
+		show_igc(igc)
+		
 		estilo_global()
+		
 		app_init(self)
+		
 	#	self.time_update()
+	
 		self.root.mainloop()
 		
 	#def time_update(self):
@@ -79,24 +88,64 @@ class interface():
 		#escribir_en(self.entrada_dns,self.dns,True)
 	
 	#FUNCION PARA EXECUTAR CANDO SE PULSE O BOTÓN DHCP
-	def boton_dhcp(self):
-		self.dhcp = False if self.dhcp else True
+	#def boton_dhcp(self):
+	#	self.dhcp = False if self.dhcp else True
+	#	
+	#	#UPDATE
+	#	
+	#	self.boton_dhcp.configure(text = "Habilitado" if self.dhcp else "Non")
+	#	self.entrada_ip.configure(state="normal" if self.conectado and not self.dhcp else "disable")
+	#	self.entrada_mascara.configure(state="normal" if self.conectado and not self.dhcp else "disable")
+	#	self.entrada_gateway.configure(state="normal" if self.conectado and not self.dhcp else "disable")
+	#	self.entrada_dns.configure(state="normal" if self.conectado else "disable")
+	#	self.boton.configure(state="normal" if self.conectado else "disable")
+	#	
+	#def boton_cambiar(self):
+	#	print ("DHCP:",self.boton_dhcp.cget("text"), "IP:",self.entrada_ip.get(), "MASK:",self.entrada_mascara.get(),
+	#			"GATEWAY:",self.entrada_gateway.get(), "DNS:",self.entrada_dns.get())
+	#			
+	#def seleccionar_interface(self):
+	#	actualizar_configuracion(self)
+	
+class ifaces_graphic_config():
+	def __init__(self,appli):
+		self.dhcp_label = ttk.Label(appli.frame_config, text="DHCP:")
+		self.ip_label = ttk.Label(appli.frame_config, text="IP:")
+		self.netmask_label = ttk.Label(appli.frame_config, text="NETMASK:")
+		self.gateway_label = ttk.Label(appli.frame_config, text="GATEWAY:")
 		
-		#UPDATE
+		self.dhcp_button = ttk.Button(appli.frame_config, text="Habilitado", state="disabled", width=15)
+		self.ip_entry = ttk.Entry(appli.frame_config, width=15)
+		self.netmask_entry = ttk.Entry(appli.frame_config, width=15)
+		self.gateway_entry = ttk.Entry(appli.frame_config, width=15)
 		
-		self.boton_dhcp.configure(text = "Habilitado" if self.dhcp else "Non")
-		self.entrada_ip.configure(state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_mascara.configure(state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_gateway.configure(state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_dns.configure(state="normal" if self.conectado else "disable")
-		self.boton.configure(state="normal" if self.conectado else "disable")
+		self.dns_label = ttk.Label(appli.frame_config, text="DNS:")
+		self.dns_entry = ttk.Entry(appli.frame_config, width=20)
 		
-	def boton_cambiar(self):
-		print ("DHCP:",self.boton_dhcp.cget("text"), "IP:",self.entrada_ip.get(), "MASK:",self.entrada_mascara.get(),
-				"GATEWAY:",self.entrada_gateway.get(), "DNS:",self.entrada_dns.get())
-				
-	def seleccionar_interface(self):
-		actualizar_configuracion(self)
+		self.aceptar_button = ttk.Button(appli.frame_config, text="ACEPTAR", width=10)
+		
+		self.separador = ttk.Separator(appli.frame_config, orient="vertical")
+		
+		
+#FUNCIÓN PARA MOSTRAR "ifaces_graphic_config"
+def show_igc(ifacesgc):
+		ifacesgc.dhcp_label.grid(row=0, column=0, padx=10, pady=10, sticky="we")
+		ifacesgc.ip_label.grid(row=1, column=0, padx=10, pady=5, sticky="we")
+		ifacesgc.netmask_label.grid(row=2, column=0, padx=10, pady=5, sticky="we")
+		ifacesgc.gateway_label.grid(row=3, column=0, padx=10, pady=5, sticky="we")
+		
+		ifacesgc.dhcp_button.grid(row=0, column=1, padx=0, pady=15, sticky="we")
+		ifacesgc.ip_entry.grid(row=1, column=1, padx=0, pady=5, sticky="we")
+		ifacesgc.netmask_entry.grid(row=2, column=1, padx=0, pady=5, sticky="we")
+		ifacesgc.gateway_entry.grid(row=3, column=1, padx=0, pady=5, sticky="we")
+		
+		ifacesgc.dns_label.grid(row=1, column=2, padx=30, pady=5, sticky="we")
+		ifacesgc.dns_entry.grid(row=2, column=2, padx=30, pady=5, sticky="we")
+		
+		ifacesgc.aceptar_button.place(x=320,y=165)
+		
+		ifacesgc.separador.place(x=200,y=50,height=140)
+		
 		
 #FUNCIÓN PARA VOLVER A CARGAR TODO, EXECUTASE AO PULSAR O BOTÓN "ACTUALIZAR"
 def actualizar(appli):
@@ -119,14 +168,7 @@ def escribir_en(entrada,texto,borrar=False):
 #FUNCIÓN PARA ESCRIBIR ENTRADAS NO LOG
 def actualizar_log(treeview,texto):
 	treeview.insert("","end",values=[texto])
-	
-#FUNCIÓN PARA DEBUXAR TODO NO FRAME DA CONFIGURACIÓN, POR CADA INTERFACE
-def actualizar_configuracion(appli):
-		ttk.Checkbutton(appli.frame_config, text="DHCP").grid(row=0, column=0, padx=10, pady=25, sticky="we")
-		ttk.Label(appli.frame_config, text="IP:").grid(row=1, column=0, padx=10, pady=10, sticky="we")
-		ttk.Label(appli.frame_config, text="NETMASK:").grid(row=2, column=0, padx=10, pady=10, sticky="we")
-		ttk.Label(appli.frame_config, text="GATEWAY:").grid(row=3, column=0, padx=10, pady=10, sticky="we")
-		ttk.Checkbutton(appli.frame_config, text="DHCP").grid(row=0, column=0, padx=10, pady=25, sticky="we")
+
 
 #FUNCIÓN QUE DETERMINA O ESTILO GLOBAL		
 def estilo_global():
