@@ -30,7 +30,7 @@ class App():
 		#self.listbox_interfaces = ttk.Treeview(self.root, columns=["ifaces"], show="headings", selectmode="browse")
 		
 		self.frame_ifaces = ttk.Frame(relief="groove")
-		self.frame_ifaces.place(x=10,y=60,width=700,height=150)
+		self.frame_ifaces.place(x=10,y=60,width=700,height=200)
 		
 		self.interfaces = interfaces_rede(self)
 		
@@ -110,9 +110,7 @@ class interface():
 		
 #FUNCIÓN PARA VOLVER A CARGAR TODO, EXECUTASE AO PULSAR O BOTÓN "ACTUALIZAR"
 def actualizar(appli):
-	appli.listbox_interfaces = ttk.Treeview(appli.root, columns=["ifaces"], show="headings")
 	appli.interfaces = interfaces_rede(appli)
-	appli.listbox_interfaces.place(x=10, y=60, width=200, height=200)
 	app_init(appli)
 	
 #FUNCIÓN PARA ESCRIBIR ALGO EN UNHA ENTRADA DE TEXTO
@@ -188,17 +186,21 @@ def app_init(appli):
 	
 	#DEBUXAR AS INTERFACES NA VENTANA
 	
+	num_row = 0
+	
 	for interface in appli.interfaces:
 		#appli.listbox_interfaces.insert("","end",values=[interface.nome], 
 		#		tags="conectada" if interface.conectado else "desconectada")
-		interface.cadro_conectado.grid(row=interface.id, column=0, pady=5, padx=10,  sticky="w")
-		interface.texto_nome.grid(row=interface.id, column=1, pady=5, padx=5, sticky="we")
-		interface.boton_dhcp.grid(row=interface.id, column=2, pady=5, padx=5, sticky="we")
-		interface.entrada_ip.grid(row=interface.id, column=3, pady=5, padx=5, sticky="we")
-		interface.entrada_mascara.grid(row=interface.id, column=4, pady=5, padx=5, sticky="we")
-		interface.entrada_gateway.grid(row=interface.id, column=5, pady=5, padx=5, sticky="we")
-		interface.entrada_dns.grid(row=interface.id, column=6, pady=5, padx=5, sticky="we")
-		#interface.boton.grid(row=interface.id, column=7, pady=5, padx=5, sticky="we")
+		interface.cadro_conectado.grid(row=num_row, column=0, pady=5, padx=10,  sticky="w")
+		interface.texto_nome.grid(row=num_row, column=1, pady=5, padx=5, sticky="we")
+		num_row += 1
+		interface.boton_dhcp.grid(row=num_row, column=0, pady=5, padx=5, sticky="we")
+		interface.entrada_ip.grid(row=num_row, column=1, pady=5, padx=5, sticky="we")
+		interface.entrada_mascara.grid(row=num_row, column=2, pady=5, padx=5, sticky="we")
+		interface.entrada_gateway.grid(row=num_row, column=3, pady=5, padx=5, sticky="we")
+		interface.entrada_dns.grid(row=num_row, column=4, pady=5, padx=5, sticky="we")
+		num_row += 1
+		#interface.boton.grid(row=interface.id, column=5, pady=5, padx=5, sticky="we")
 	
 	#COLOR DAS INTERFACES
 	
@@ -217,8 +219,16 @@ def app_init(appli):
 	
 	#DEBUXAR AS BARRAS DE SCROOL DA CAIXA DAS INTERFACES
 	
-	#yscroll_ifaces = ttk.Scrollbar(orient="vertical",command=appli.listbox_interfaces.yview)
+	#yscroll_ifaces = ttk.Scrollbar(appli.frame_ifaces,orient="vertical")
+	#yscroll_ifaces.place(x=680,y=1,width=20,height=147)
 	#xscroll_ifaces = ttk.Scrollbar(orient="horizontal",command=appli.listbox_interfaces.xview)
+		
+	#canvas = Canvas(appli.frame_ifaces, bd=0, highlightthickness=0, 
+	#				yscrollcommand=yscroll_ifaces.set)
+					
+	#yscroll_ifaces.config(command=canvas.yview)
+	
+	#canvas.place(x=20,y=1,width=20,height=147)
 	
 	#appli.listbox_interfaces.configure(yscrollcommand=yscroll_ifaces.set, xscrollcommand=xscroll_ifaces.set)
 	
