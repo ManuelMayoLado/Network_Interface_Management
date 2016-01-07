@@ -10,11 +10,16 @@ class Fio_chamada_os(threading.Thread):
 		self.dns=""
 		self.dhcp=""
 	def run(self):
+		global conectados_info
 		try:
 			dns_info = os.popen("netsh interface ipv4 show dns name="+self.iname).read()
 			self.dns = re.findall("\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}",dns_info)
-			conectado_info = os.popen("netsh interface ipv4 show interfaces").read().replace(" ","")
-			self.conectado = True if re.findall("\dconnected"+self.iname.replace(" ",""),conectado_info) else False
+			self.conectado = True if re.findall("\dconnected"+self.iname.replace(" ",""),conectados_info) else False
+			dhcp_info = os.popen('netsh interface ipv4 show config name="'+self.iname+'"').read().replace(" ","")
+			if re.findall("DHCPhabilitado:S",dhcp_info):
+				self.dhcp = True
+			else:
+				self.dhcp = False
 		except:
 			pass
 
@@ -22,6 +27,7 @@ Sistema_operativo = "Linux" if os.name == "posix" else "Windows"
 
 if Sistema_operativo == "Windows":
 	import _winreg as wr
+	conectados_info = os.popen("netsh interface ipv4 show interfaces").read().replace(" ","")
 
 def get_connection_name_from_guid(iface_guids):
 	iface_names = []
@@ -87,13 +93,6 @@ def datos_interfaces():
 		for i in range(len(lista_datos_iface)):
 			lista_datos_iface[i][2]['dns'] = lista_chamadas_os[i].dns
 			lista_datos_iface[i][2]['conectado'] = lista_chamadas_os[i].conectado
+			lista_datos_iface[i][2]['dhcp'] = lista_chamadas_os[i].dhcp
 	
 	return [i for i in lista_datos_iface if i[0] != "lo"]
-	
-#for interface in datos_interfaces():
-#	print interface
-
-	#### DNS
-
-	#nslookup_info = os.popen("nslookup").read()
-	#dns = re.findall('Address:(.+)',nslookup_info)
