@@ -12,7 +12,7 @@ class Fio_chamada_os(threading.Thread):
 	def run(self):
 		global conectados_info
 		try:
-			dns_info = os.popen("netsh interface ipv4 show dns name="+self.iname).read()
+			dns_info = os.popen("netsh interface ipv4 show dns name="+'"'+self.iname+'"').read()
 			self.dns = re.findall("\d{0,3}\.\d{0,3}\.\d{0,3}\.\d{0,3}",dns_info)
 			self.conectado = True if re.findall("\dconnected"+self.iname.replace(" ",""),conectados_info) else False
 			dhcp_info = os.popen('netsh interface ipv4 show config name="'+self.iname+'"').read().replace(" ","")

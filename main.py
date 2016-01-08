@@ -83,7 +83,8 @@ class interface():
 		self.dhcp = dhcp
 		
 		#BOTÓNS E CADROS DE TEXTO
-		self.cadro_conectado = ttk.Label(appli.frame_ifaces, text="     ", relief="groove", background="green" if self.conectado else "red")
+		self.cadro_conectado = ttk.Label(appli.frame_ifaces, text="     ",
+							relief="groove", background="green" if self.conectado else "red")
 		
 		self.texto_nome = ttk.Label(appli.frame_ifaces, text=self.nome, width=30)
 		if self.dhcp == None:
@@ -105,20 +106,65 @@ class interface():
 	
 	#FUNCION PARA EXECUTAR CANDO SE PULSE O BOTÓN DHCP
 	def boton_dhcp(self):
-		self.dhcp = False if self.dhcp else True
+		dhcp = False if self.boton_dhcp.cget("text") == "DHCP" else True
 		
 		#UPDATE
 		
-		self.boton_dhcp.configure(text = "DHCP" if self.dhcp else "Estática")
-		self.entrada_ip.configure(state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_mascara.configure(state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_gateway.configure(state="normal" if self.conectado and not self.dhcp else "disable")
+		self.boton_dhcp.configure(text = "DHCP" if dhcp else "Estática")
+		self.entrada_ip.configure(state="normal" if self.conectado and not dhcp else "disable")
+		self.entrada_mascara.configure(state="normal" if self.conectado and not dhcp else "disable")
+		self.entrada_gateway.configure(state="normal" if self.conectado and not dhcp else "disable")
 		self.entrada_dns.configure(state="normal" if self.conectado else "disable")
 		self.boton.configure(state="normal" if self.conectado else "disable")
 		
 	def boton_cambiar(self):
-		print ("DHCP: "+self.boton_dhcp.cget("text"), "IP: "+self.entrada_ip.get(), "MASK: "+self.entrada_mascara.get(),
-				"GATEWAY: "+self.entrada_gateway.get(), "DNS: "+self.entrada_dns.get())
+		novo_dhcp = True if self.boton_dhcp.cget("text") == "DHCP" else False
+		novo_ip = self.entrada_ip.get()
+		novo_mask = self.entrada_mascara.get()
+		novo_gateway = self.entrada_gateway.get()
+		novo_dns = self.entrada_dns.get()
+		print ("DHCP: "+str(novo_dhcp), "IP: "+novo_ip, "MASK: "+novo_mask,
+				"GATEWAY: "+novo_gateway, "DNS: "+novo_dns)
+		if not [self.ip,self.mascara,self.gateway,self.dns,self.dhcp] == [novo_ip,novo_mask,novo_gateway,novo_dns,novo_dhcp]:
+			if Sistema_operativo == "Windows":
+				cambio_config = False
+				try:
+					#GLOBAL
+					if not [self.ip,self.mascara,self.gateway,self.dhcp] == [novo_ip,novo_mask,novo_gateway,novo_dhcp]:
+						if novo_dhcp and not (novo_dhcp == self.dhcp):
+							print("netsh interface ip set address name="+'"'+self.nome+"'"+"source=dhcp")
+							os.popen("netsh interface ip set address name="+'"'+self.nome+'"'+"source=dhcp")
+							cambio_config = True
+						elif not novo_dhcp:
+							os.popen("netsh interface ip set address name="+'"'+self.nome+'"'+" "+
+										"static "+novo_ip+" "+novo_mask+" "+novo_gateway)
+							print("netsh interface ip set address name="+'"'+self.nome+'"'+" "+
+										"static "+novo_ip+" "+novo_mask+" "+novo_gateway)
+							cambio_config = True
+						else:
+							print ">> Sen cambios na configuracion"
+					else:
+						print ">> Sen cambios na configuracion 2"
+					#DNS
+					if (not novo_dns == self.dns) or cambio_config:
+						lista_dns = novo_dns.split(" ")
+						if lista_dns[0]:
+							for dns in range(len(lista_dns)):
+								print("netsh interface ip add dnsserver name="+'"'+self.nome+'"'+" "+lista_dns[dns]+" "+
+											"index="+str(dns))
+								os.popen("netsh interface ip add dnsserver name="+'"'+self.nome+'"'+" "+lista_dns[dns]+" "+
+											"index="+str(dns))
+						else:
+							print("netsh interface ip delete dnsserver name="+'"'+self.nome+'"'+" "+"all")
+							os.popen("netsh interface ip delete dnsserver name="+'"'+self.nome+'"'+" "+"all")
+					else:
+						print ">> Sen cambios no DNS"
+				except:
+					print "ERROR! - Non puido cambiarse a configuracion"
+			else:
+				None
+		else:
+			print "Sen cambios"
 				
 #FUNCIÓN PARA VOLVER A CARGAR TODO, EXECUTASE AO PULSAR O BOTÓN "ACTUALIZAR"
 def actualizar(appli):
@@ -138,7 +184,7 @@ def escribir_en(entrada,texto,borrar=False):
 
 #FUNCIÓN QUE DETERMINA O ESTILO GLOBAL		
 def estilo_global():
-	ttk.Style().configure("TFrame", background="#f9f9f9")
+	#ttk.Style().configure("TFrame", background="#f9f9f9")
 	ttk.Style().configure("TLabel", background="#f9f9f9")
 	ttk.Style().configure("TCheckbutton", background="#f9f9f9")
 		
