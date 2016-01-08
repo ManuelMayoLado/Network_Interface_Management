@@ -132,8 +132,8 @@ class interface():
 					#GLOBAL
 					if not [self.ip,self.mascara,self.gateway,self.dhcp] == [novo_ip,novo_mask,novo_gateway,novo_dhcp]:
 						if novo_dhcp and not (novo_dhcp == self.dhcp):
-							print("netsh interface ip set address name="+'"'+self.nome+"'"+"source=dhcp")
-							os.popen("netsh interface ip set address name="+'"'+self.nome+'"'+"source=dhcp")
+							print("netsh interface ip set address name="+'"'+self.nome+"'"+" "+"source=dhcp")
+							os.popen("netsh interface ip set address name="+'"'+self.nome+'"'+" "+"source=dhcp")
 							cambio_config = True
 						elif not novo_dhcp:
 							os.popen("netsh interface ip set address name="+'"'+self.nome+'"'+" "+
