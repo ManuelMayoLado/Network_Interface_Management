@@ -90,14 +90,19 @@ class interface():
 		if self.dhcp == None:
 			self.boton_dhcp = ttk.Button(appli.frame_ifaces, text="", state="disable")
 		else:
-			self.boton_dhcp = ttk.Button(appli.frame_ifaces, text="DHCP" if self.dhcp else "Estática", command=self.boton_dhcp,
-							state="normal" if self.conectado else "disable")
+			self.boton_dhcp = ttk.Button(appli.frame_ifaces, text="DHCP" if self.dhcp else "Estática",
+							command=self.boton_dhcp, state="normal" if self.conectado else "disable")
 							
-		self.entrada_ip = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_mascara = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_gateway = ttk.Entry(appli.frame_ifaces, width=15, state="normal" if self.conectado and not self.dhcp else "disable")
-		self.entrada_dns = ttk.Entry(appli.frame_ifaces, width=20, state="normal" if self.conectado else "disable")
-		self.boton = ttk.Button(appli.frame_ifaces, text="CAMBIAR", command=self.boton_cambiar, state="normal" if self.conectado else "disable")
+		self.entrada_ip = ttk.Entry(appli.frame_ifaces, width=15,
+								state="normal" if self.conectado and not self.dhcp else "disable")
+		self.entrada_mascara = ttk.Entry(appli.frame_ifaces, width=15,
+								state="normal" if self.conectado and not self.dhcp else "disable")
+		self.entrada_gateway = ttk.Entry(appli.frame_ifaces, width=15,
+								state="normal" if self.conectado and not self.dhcp else "disable")
+		self.entrada_dns = ttk.Entry(appli.frame_ifaces, width=20,
+								state="normal" if self.conectado else "disable")
+		self.boton = ttk.Button(appli.frame_ifaces, text="CAMBIAR",
+								command=self.boton_cambiar, state="normal" if self.conectado else "disable")
 		#ESCRIBIR OS PARAMETROS NAS ENTRADAS DE TEXTO
 		escribir_en(self.entrada_ip,self.ip,True)
 		escribir_en(self.entrada_mascara,self.mascara,True)
@@ -125,12 +130,14 @@ class interface():
 		novo_dns = self.entrada_dns.get()
 		print ("DHCP: "+str(novo_dhcp), "IP: "+novo_ip, "MASK: "+novo_mask,
 				"GATEWAY: "+novo_gateway, "DNS: "+novo_dns)
-		if not [self.ip,self.mascara,self.gateway,self.dns,self.dhcp] == [novo_ip,novo_mask,novo_gateway,novo_dns,novo_dhcp]:
+		if not ([self.ip,self.mascara,self.gateway,self.dns,self.dhcp] == 
+						[novo_ip,novo_mask,novo_gateway,novo_dns,novo_dhcp]):
 			if Sistema_operativo == "Windows":
 				cambio_config = False
 				try:
 					#GLOBAL
-					if not [self.ip,self.mascara,self.gateway,self.dhcp] == [novo_ip,novo_mask,novo_gateway,novo_dhcp]:
+					if not ([self.ip,self.mascara,self.gateway,self.dhcp] ==
+									[novo_ip,novo_mask,novo_gateway,novo_dhcp]):
 						if novo_dhcp and not (novo_dhcp == self.dhcp):
 							print("netsh interface ip set address name="+'"'+self.nome+"'"+" "+"source=dhcp")
 							os.popen("netsh interface ip set address name="+'"'+self.nome+'"'+" "+"source=dhcp")
@@ -150,9 +157,11 @@ class interface():
 						lista_dns = novo_dns.split(" ")
 						if lista_dns[0]:
 							for dns in range(len(lista_dns)):
-								print("netsh interface ip add dnsserver name="+'"'+self.nome+'"'+" "+lista_dns[dns]+" "+
+								print("netsh interface ip add dnsserver name="+'"'+self.nome+'"'+
+											" "+lista_dns[dns]+" "+
 											"index="+str(dns))
-								os.popen("netsh interface ip add dnsserver name="+'"'+self.nome+'"'+" "+lista_dns[dns]+" "+
+								os.popen("netsh interface ip add dnsserver name="+'"'+self.nome+'"'+
+											" "+lista_dns[dns]+" "+
 											"index="+str(dns))
 						else:
 							print("netsh interface ip delete dnsserver name="+'"'+self.nome+'"'+" "+"all")
