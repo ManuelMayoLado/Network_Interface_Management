@@ -27,33 +27,49 @@ class App():
 	def __init__(self):
 		self.root = Tk()
 		
-		self.text_log = Text(self.root,relief="flat",state="disable")
-		
 		#FRAME IFACES
+		canvas_iface = Canvas(self.root,relief="flat",borderwidth=0,background="#f8f9ff",
+								highlightcolor="#f9f9f9",highlightbackground="#f9f9f9")
+		self.frame_ifaces = Frame(canvas_iface, background="#f8f9ff")
 		
-		canvas_iface = Canvas(self.root,relief="flat",borderwidth=0,background="#f9f9f9",
-								highlightcolor="#f9f9ff",highlightbackground="#f9f9f9")
-		self.frame_ifaces = Frame(canvas_iface,relief="flat",background="#f9f9f9")
-		
-		ifaces_scroll = ttk.Scrollbar(canvas_iface,orient="vertical",command=canvas_iface.yview)
+		ifaces_scroll = ttk.Scrollbar(self.root,orient="vertical",command=canvas_iface.yview)
 		canvas_iface.configure(yscrollcommand=ifaces_scroll.set)
-
-		canvas_iface.place(x=10,y=60,width=TAMANHO_VENTANA[0]-20,height=ALTO_FRAME)
-		
-		canvas_iface.create_window((0,0),window=self.frame_ifaces, anchor="nw")
 		
 		def onFrameConfigure(canvas):
 			canvas.configure(scrollregion=canvas.bbox("all"))
 		
-		self.frame_ifaces.bind("<Configure>",lambda event, canvas_iface=canvas_iface: onFrameConfigure(canvas_iface))
+		self.frame_ifaces.bind("<Configure>",lambda event,
+					canvas_iface=canvas_iface: onFrameConfigure(canvas_iface))
 		
-		ifaces_scroll.place(x=TAMANHO_VENTANA[0]-35,y=0,width=17,height=ALTO_FRAME)
+		#PEGAMOS CANVAS CON FRAME
+		canvas_iface.grid(row=1, column=0, padx=5, pady=5, columnspan=6, sticky="nwes")
+		canvas_iface.create_window((0,0),window=self.frame_ifaces, anchor="nw")
+		ifaces_scroll.grid(row=1,column=6, sticky="ns", pady=5)
+		#CAMBIAMOS O TAMANHO DO CANVAS SE SE REQUIRE
+		#h_canvas = canvas_iface.winfo_reqheight()
+		#h_frame = self.frame_ifaces.winfo_reqheight()
+		#if h_frame < h_canvas:
+		#	self.frame_ifaces.configure(height=h_canvas)
+		#	canvas_iface.create_window((0,0),window=self.frame_ifaces, anchor="nw")
+			
+		#def frame_resize(event):
+		#	w = event.width
+		#	h = event.height
+		#	self.frame_ifaces.configure(height=h,width=w)
+		#	canvas_iface.create_window((0,0),window=self.frame_ifaces, anchor="nw")
+			
+		#canvas_iface.bind("<Configure>",frame_resize)
 		
+		
+		#INTERFACES
 		self.interfaces = interfaces_rede(self)
 		
-		self.text_log.place(x=10,y=280,width=TAMANHO_VENTANA[0]-20,height=ALTO_LOG)
+		#TEXTO LOG
+		self.text_log = Text(self.root,relief="flat",state="disable",height=10)
+		self.text_log.grid(row=2, column=0, padx=5, pady=5, columnspan=6, sticky="we")
 		escribir_en(self.text_log,str(time.strftime("%H:%M:%S"))+"  >>> Inicio da aplicación")
 		
+		#ESTILO GLOBAL
 		estilo_global()
 		
 		app_init(self)
@@ -84,9 +100,10 @@ class interface():
 		
 		#BOTÓNS E CADROS DE TEXTO
 		self.cadro_conectado = ttk.Label(appli.frame_ifaces, text="     ",
-							relief="groove", background="green" if self.conectado else "red")
+							relief="flat", background="green" if self.conectado else "red")
 		
-		self.texto_nome = ttk.Label(appli.frame_ifaces, text=self.nome, width=30)
+		self.texto_nome = ttk.Label(appli.frame_ifaces, text=self.nome, background="#EBF1F6", width=100)
+		#self.texto_nome = ttk.Label(appli.frame_ifaces, text=self.nome, background="#EBF1F6", relief="groove", width=100)
 		if self.dhcp == None:
 			self.boton_dhcp = ttk.Button(appli.frame_ifaces, text="", state="disable")
 		else:
@@ -217,9 +234,6 @@ def interfaces_rede(appli):
 			lista_interfaces.append(interface(appli,i,nome_i,conectado_i,"","",info_interfaces[i][2]["gateway"],
 					" ".join(info_interfaces[i][2]["dns"]),info_interfaces[i][2]["dhcp"]))
 					
-	#for i in info_interfaces:
-	#	print i
-					
 	return sorted(lista_interfaces, key=lambda interface: interface.conectado, reverse=True)
 	
 #FUNCIÓN QUE CONFIGURA E DEBUXA TODOS OS ELEMENTOS NA VENTANA
@@ -229,35 +243,38 @@ def app_init(appli):
 	appli.root.title("Configuración de Interfaces de Rede")
 	
 	#CONFIGURACION DA VENTANA
-	appli.root.resizable(width=False, height=False)
-	appli.root.minsize(TAMANHO_VENTANA[0],TAMANHO_VENTANA[1])
+	appli.root.resizable(width=True, height=True)
+	appli.root.minsize(TAMANHO_VENTANA[0]+10,TAMANHO_VENTANA[1]+10)
+	#CONFIGURAMOS UNHA COLUMNA E UNHA FILA PARA QUE PODAN EXPANDIRSE
+	appli.root.columnconfigure(5, weight=1)
+	appli.root.rowconfigure(1, weight=1)
 	
 	#TEXTO, CAMPOS DE TEXTO E BOTÓNS SEGÚN INTERFACES
 	
-	Boton_actualizar = ttk.Button(appli.root, text="ACTUALIZAR", command=lambda: actualizar(appli))
-	Boton_actualizar.place(x=10,y=10)
+	Boton_actualizar = ttk.Button(appli.root, text="ACTUALIZAR", 
+					command=lambda: actualizar(appli))
+	Boton_actualizar.grid(row=0, column=0, pady=5, padx=5, sticky="w")
 	
 	#DEBUXAR AS INTERFACES NA VENTANA
 	
-	num_row = 0
-	nome_y = 5
+	row_int = 0
 	
 	for interface in appli.interfaces:
-		interface.cadro_conectado.grid(row=num_row, column=0, pady=5, padx=10,  sticky="w")
-		interface.texto_nome.place(x=45,y=nome_y)
-		num_row += 1
-		interface.boton_dhcp.grid(row=num_row, column=0, pady=5, padx=5, sticky="we")
-		ttk.Label(appli.frame_ifaces, text="IP:").grid(row=num_row, column=1, pady=5, padx=5, sticky="we")
-		interface.entrada_ip.grid(row=num_row, column=2, pady=5, padx=5, sticky="we")
-		ttk.Label(appli.frame_ifaces, text="MASK:").grid(row=num_row, column=3, pady=5, padx=5, sticky="we")
-		interface.entrada_mascara.grid(row=num_row, column=4, pady=5, padx=5, sticky="we")
-		ttk.Label(appli.frame_ifaces, text="GW:").grid(row=num_row, column=5, pady=5, padx=5, sticky="we")
-		interface.entrada_gateway.grid(row=num_row, column=6, pady=5, padx=5, sticky="we")
-		ttk.Label(appli.frame_ifaces, text="DNS:").grid(row=num_row, column=7, pady=5, padx=5, sticky="we")
-		interface.entrada_dns.grid(row=num_row, column=8, pady=5, padx=5, sticky="we")
-		interface.boton.grid(row=num_row, column=9, pady=5, padx=5, sticky="we")
-		num_row += 1
-		nome_y += 64
+		interface.cadro_conectado.grid(row=row_int, column=0, pady=5, padx=10,  sticky="w")
+		interface.texto_nome.grid(row=row_int, column=1, columnspan=8, padx=5, sticky="w")
+		row_int += 1
+		interface.boton_dhcp.grid(row=row_int, column=0, pady=5, padx=5, sticky="we")
+		ttk.Label(appli.frame_ifaces, text="IP:").grid(row=row_int, column=1, pady=5, padx=5, sticky="we")
+		interface.entrada_ip.grid(row=row_int, column=2, pady=5, padx=5, sticky="we")
+		ttk.Label(appli.frame_ifaces, text="MASK:").grid(row=row_int, column=3, pady=5, padx=5, sticky="we")
+		interface.entrada_mascara.grid(row=row_int, column=4, pady=5, padx=5, sticky="we")
+		ttk.Label(appli.frame_ifaces, text="GW:").grid(row=row_int, column=5, pady=5, padx=5, sticky="we")
+		interface.entrada_gateway.grid(row=row_int, column=6, pady=5, padx=5, sticky="we")
+		ttk.Label(appli.frame_ifaces, text="DNS:").grid(row=row_int, column=7, pady=5, padx=5, sticky="we")
+		interface.entrada_dns.grid(row=row_int, column=8, pady=5, padx=5, sticky="we")
+		interface.boton.grid(row=row_int, column=9, pady=5, padx=5, sticky="we")
+		row_int += 1
+	
 		
 	#BARRA DE SCROLL LOG
 		
@@ -266,8 +283,7 @@ def app_init(appli):
 	appli.text_log.config(yscrollcommand=log_scroll.set)
 	log_scroll.config(command=appli.text_log.yview)
 	
-	log_scroll.place(x=TAMANHO_VENTANA[0]-25,y=TAMANHO_VENTANA[1]-(ALTO_LOG+20),width=17,height=ALTO_LOG)
-	
+	log_scroll.grid(row=2,column=6,sticky="wns",pady=5)
 	
 if __name__ == "__main__":
 	app = App()
