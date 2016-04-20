@@ -71,16 +71,17 @@ def datos_interfaces():
 	gateways = ni.gateways()
 
 	#OBTER GATEWAY
-	
 	for i in lista_datos_iface:
-		for x in gateways[ni.AF_INET]:
-			if i[1] in x:
-				i[2]['gateway'] = x[0]
-		if not 'gateway' in i[2]:
-			i[2]['gateway'] = ""
+		try:
+			for x in gateways[ni.AF_INET]:
+				if i[1] in x:
+					i[2]['gateway'] = x[0]
+			if not 'gateway' in i[2]:
+				i[2]['gateway'] = ""
+		except:
+			None
 				
 	#OBTER DNS
-	
 	if Sistema_operativo == "Windows":
 		lista_chamadas_os = []
 		for i in lista_datos_iface:

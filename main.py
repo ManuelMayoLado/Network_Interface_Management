@@ -17,11 +17,14 @@ import iface
 
 Sistema_operativo = "Linux" if os.name == "posix" else "Windows"
 
-TAMANHO_VENTANA = [820,470]
+TAMANHO_VENTANA = [820,200]
 ALTO_FRAME = 200
-ALTO_LOG = 170
+#ALTO_LOG = 170
 
 #CLASE APP
+
+print "Ejecutar como ADMINISTRADOR"
+print
 
 class App():
 	def __init__(self):
@@ -32,7 +35,7 @@ class App():
 								highlightcolor="#f9f9f9",highlightbackground="#f9f9f9")
 		self.frame_ifaces = Frame(canvas_iface, background="#f8f9ff")
 		
-		ifaces_scroll = ttk.Scrollbar(self.root,orient="vertical",command=canvas_iface.yview)
+		ifaces_scroll = Scrollbar(self.root,orient="vertical",command=canvas_iface.yview)
 		canvas_iface.configure(yscrollcommand=ifaces_scroll.set)
 		
 		def onFrameConfigure(canvas):
@@ -65,9 +68,9 @@ class App():
 		self.interfaces = interfaces_rede(self)
 		
 		#TEXTO LOG
-		self.text_log = Text(self.root,relief="flat",state="disable",height=10)
-		self.text_log.grid(row=2, column=0, padx=5, pady=5, columnspan=6, sticky="we")
-		escribir_en(self.text_log,str(time.strftime("%H:%M:%S"))+"  >>> Inicio da aplicación")
+		#self.text_log = Text(self.root,relief="flat",state="disable",height=10)
+		#self.text_log.grid(row=2, column=0, padx=5, pady=5, columnspan=6, sticky="we")
+		#escribir_en(self.text_log,str(time.strftime("%H:%M:%S"))+"  >>> Inicio da aplicación")
 		
 		#ESTILO GLOBAL
 		estilo_global()
@@ -191,6 +194,7 @@ class interface():
 				None
 		else:
 			print "Sen cambios"
+		print
 				
 #FUNCIÓN PARA VOLVER A CARGAR TODO, EXECUTASE AO PULSAR O BOTÓN "ACTUALIZAR"
 def actualizar(appli):
@@ -224,14 +228,18 @@ def interfaces_rede(appli):
 	for i in range(len(info_interfaces)):
 		nome_i = info_interfaces[i][0]
 		conectado_i = info_interfaces[i][2]['conectado']
-		if conectado_i:
+		if "gateway" in info_interfaces[i][2]:
+			gw = info_interfaces[i][2]["gateway"]
+		else:
+			gw = ""
+		if conectado_i and "addr" in info_interfaces[i][2]:
 			lista_interfaces.append(
-                interface(
-                    appli,i,nome_i,conectado_i,info_interfaces[i][2]["addr"],info_interfaces[i][2]["netmask"],
-                    info_interfaces[i][2]["gateway"]," ".join(info_interfaces[i][2]["dns"]),
+				interface(
+					appli,i,nome_i,conectado_i,info_interfaces[i][2]["addr"],info_interfaces[i][2]["netmask"],
+					gw," ".join(info_interfaces[i][2]["dns"]),
 					info_interfaces[i][2]["dhcp"]))
 		else:
-			lista_interfaces.append(interface(appli,i,nome_i,conectado_i,"","",info_interfaces[i][2]["gateway"],
+			lista_interfaces.append(interface(appli,i,nome_i,conectado_i,"","",gw,
 					" ".join(info_interfaces[i][2]["dns"]),info_interfaces[i][2]["dhcp"]))
 					
 	return sorted(lista_interfaces, key=lambda interface: interface.conectado, reverse=True)
@@ -278,12 +286,12 @@ def app_init(appli):
 		
 	#BARRA DE SCROLL LOG
 		
-	log_scroll = ttk.Scrollbar(appli.root)
+	#log_scroll = ttk.Scrollbar(appli.root)
 	
-	appli.text_log.config(yscrollcommand=log_scroll.set)
-	log_scroll.config(command=appli.text_log.yview)
+	#appli.text_log.config(yscrollcommand=log_scroll.set)
+	#log_scroll.config(command=appli.text_log.yview)
 	
-	log_scroll.grid(row=2,column=6,sticky="wns",pady=5)
+	#log_scroll.grid(row=2,column=6,sticky="wns",pady=5)
 	
 if __name__ == "__main__":
 	app = App()
