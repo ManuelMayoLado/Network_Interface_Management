@@ -17,7 +17,7 @@ import iface
 
 Sistema_operativo = "Linux" if os.name == "posix" else "Windows"
 
-TAMANHO_VENTANA = [820,200]
+TAMANHO_VENTANA = [950,200]
 ALTO_FRAME = 200
 #ALTO_LOG = 170
 
