@@ -9,6 +9,7 @@ class Fio_chamada_os(threading.Thread):
 		self.iname=iname
 		self.dns=""
 		self.dhcp=""
+		self.conectado=False
 	def run(self):
 		global conectados_info
 		try:
@@ -26,7 +27,7 @@ class Fio_chamada_os(threading.Thread):
 Sistema_operativo = "Linux" if os.name == "posix" else "Windows"
 
 if Sistema_operativo == "Windows":
-	import _winreg as wr
+	import winreg as wr
 	conectados_info = os.popen("netsh interface ipv4 show interfaces").read().replace(" ","")
 
 def get_connection_name_from_guid(iface_guids):
